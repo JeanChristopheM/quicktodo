@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import "./App.css";
-import Todo, { ITodo } from "./Todo";
+import type { ITodo } from "./Todo";
 import { auth, createTodo, handleSignIn } from "./firebase";
 import { Context } from "./ContextProvider";
+import TaskList from "./TaskList";
 
 function App() {
   const context = useContext(Context);
@@ -23,19 +24,8 @@ function App() {
       {context?.user ? (
         <>
           <h2>Tâches</h2>
-          {context?.todos && context.todos.length ? (
-            <ul>
-              {context.todos
-                .sort((a, b) =>
-                  a.createdAt.toDate() > b.createdAt.toDate() ? -1 : 1
-                )
-                .map((t) => (
-                  <Todo todo={t} key={t.id} />
-                ))}
-            </ul>
-          ) : (
-            <p>Aucune tâche pour le moment.</p>
-          )}
+          <TaskList tasks={context?.todos || null} />
+
           <button onClick={handleCreateTodo}>Créer todo</button>
           <div>
             <button onClick={() => auth.signOut()}>Sign out</button>
