@@ -4,6 +4,7 @@ import type { ITodo } from "./Todo";
 import { auth, createTodo, handleSignIn } from "./firebase";
 import { Context } from "./ContextProvider";
 import TaskList from "./TaskList";
+import { Link } from "react-router-dom";
 
 function App() {
   const context = useContext(Context);
@@ -23,13 +24,16 @@ function App() {
     <main>
       {context?.user ? (
         <>
+          <div>
+            <button onClick={() => auth.signOut()}>Sign out</button>
+            <Link to="new">
+              <button>New</button>
+            </Link>
+          </div>
           <h2>Tâches</h2>
           <TaskList tasks={context?.todos || null} />
 
           <button onClick={handleCreateTodo}>Créer todo</button>
-          <div>
-            <button onClick={() => auth.signOut()}>Sign out</button>
-          </div>
         </>
       ) : (
         <>

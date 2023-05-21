@@ -11,7 +11,7 @@ export interface ITodo {
   author: string;
   createdAt: Timestamp;
   lastEditedAt: Timestamp | null;
-  lastEditor: string;
+  lastEditor: string | null;
   status: boolean;
 }
 
@@ -22,6 +22,11 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
       <h3 id="name">{name}</h3>
       <p id="comment">{comment}</p>
       <h2 id="status">{status ? "FAIT" : "À FAIRE"}</h2>
+      {todo.lastEditedAt && (
+        <p id="info">
+          Édité par: {todo?.lastEditor} le {formatDate(todo.lastEditedAt)}
+        </p>
+      )}
       <p id="info">
         Par: {author} le {formatDate(createdAt)}
       </p>

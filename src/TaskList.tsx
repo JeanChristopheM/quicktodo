@@ -9,7 +9,15 @@ const TaskList: React.FC<ITaskListProps> = ({ tasks }) => {
   return tasks && tasks.length ? (
     <ul>
       {tasks
-        .sort((a, b) => (a.createdAt.toDate() > b.createdAt.toDate() ? -1 : 1))
+        .sort((a, b) => {
+          const aDate = a.status
+            ? a.createdAt.toDate()
+            : a.lastEditedAt?.toDate() || a.createdAt.toDate();
+          const bDate = b.status
+            ? b.createdAt.toDate()
+            : b.lastEditedAt?.toDate() || b.createdAt.toDate();
+          return aDate > bDate ? -1 : 1;
+        })
         .map((t) => (
           <Todo todo={t} key={t.id} />
         ))}
