@@ -1,6 +1,5 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
+
 import {
   browserLocalPersistence,
   getAuth,
@@ -13,27 +12,28 @@ import {
   getFirestore,
   collection,
   addDoc,
-  getDocs,
   runTransaction,
   doc,
+  onSnapshot,
 } from "firebase/firestore";
-import { ITodo } from "./Todo";
+
+import type { ITodo } from "./Todo";
+
 import { allowedEmails, firebaseConfig } from "./env";
 
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-
-// Initialize Firebase
+// . Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const provider = new GoogleAuthProvider();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// . Auth utils
 export const handleSignIn = async () => {
   try {
     setPersistence(auth, browserLocalPersistence).then(() => {
-      signInWithPopup(auth, provider);
+      signInWithPopup(auth, provider).then((result) => {
+        if (!isUserValid(result.user)) alert("Invalid user");
+      });
     });
   } catch (error) {
     console.error("Error signing in with Google:", error);
@@ -45,6 +45,46 @@ export const isUserValid = (user: User | null) => {
   console.log("wrong user", user);
   return false;
 };
+
+// . Store utils
+export const subscribeToDBChanges = (
+  setTodos: React.Dispatch<React.SetStateAction<ITodo[] | null>>
+) =>
+  onSnapshot(
+    collection(db, "todos"),
+    (snapshot) => {
+      console.log("database change detected");
+      console.log({ snapshot });
+      snapshot.docChanges().forEach((change) => {
+        const todo = {
+          ...change.doc.data(),
+          id: change.doc.id,
+        } as ITodo;
+        if (change.type === "added") {
+          console.log("New todo: ", todo);
+          setTodos((todos) => {
+            if (!todos) return [todo];
+            return todos.some((t) => t.id === todo.id)
+              ? todos
+              : [...todos, todo];
+          });
+        }
+        if (change.type === "modified") {
+          console.log("Modified todo: ", todo);
+          setTodos((todos) =>
+            todos ? todos.map((t) => (t.id === todo.id ? todo : t)) : null
+          );
+        }
+        if (change.type === "removed") {
+          console.log("Removed city: ", change.doc.data());
+          setTodos((todos) =>
+            todos ? todos.filter((t) => t.id !== todo.id) : null
+          );
+        }
+      });
+    },
+    (error) => console.log(error)
+  );
 
 export const createTodo = async ({
   user,
@@ -67,26 +107,6 @@ export const createTodo = async ({
   }
 };
 
-export const getTodos = async (
-  user: User | null,
-  todos: ITodo[] | null,
-  setTodos: (todos: ITodo[]) => void
-) => {
-  if (todos && todos.length) return;
-  if (!isUserValid(user)) return;
-
-  const docsRef = collection(db, "todos");
-  const docsSnap = await getDocs(docsRef);
-  const fetchedTodos: ITodo[] = [];
-  console.log({ docsSnap });
-  docsSnap.forEach((doc) => {
-    const data = doc.data();
-    fetchedTodos.push({ ...data, id: doc.id } as ITodo);
-  });
-  console.log({ fetchedTodos });
-  setTodos(fetchedTodos);
-};
-
 export const updateTodo = async (todo: ITodo) => {
   try {
     const sfDocRef = doc(db, "todos", todo.id);
@@ -96,8 +116,7 @@ export const updateTodo = async (todo: ITodo) => {
         throw "Document does not exist!";
       }
 
-      const newStatus = !sfDoc.data().status;
-      transaction.update(sfDocRef, { status: newStatus });
+      transaction.update(sfDocRef, todo as { [key in string]: any });
     });
     console.log("Transaction successfully committed!");
   } catch (e) {

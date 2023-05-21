@@ -1,5 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 import React from "react";
+import "./Todo.css";
 import { updateTodo } from "./firebase";
 
 export interface ITodo {
@@ -14,17 +15,16 @@ export interface ITodo {
 const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
   const { id, name, comment, author, createdAt, status } = todo;
   return (
-    <li key={id} style={{ border: "1px solid red" }}>
-      <h3>{name}</h3>
-      <p>{comment}</p>
-      <h2>{status ? "FAIT" : "À FAIRE"}</h2>
-      <p>
-        <i>{author}</i>
+    <li key={id} className="todoCard">
+      <h3 id="name">{name}</h3>
+      <p id="comment">{comment}</p>
+      <h2 id="status">{status ? "FAIT" : "À FAIRE"}</h2>
+      <p id="info">
+        Par: {author} le {createdAt.toDate().toLocaleDateString()}
       </p>
-      <p>
-        <i>{createdAt.toDate().toLocaleDateString()}</i>
-      </p>
-      <button onClick={() => updateTodo(todo)}>Changer status</button>
+      <button onClick={() => updateTodo({ ...todo, status: !todo.status })}>
+        Changer status
+      </button>
     </li>
   );
 };

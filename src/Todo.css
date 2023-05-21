@@ -1,0 +1,46 @@
+.todoCard {
+  border: 1px solid white;
+  border-radius: 0.2rem;
+  padding: 0.5rem;
+}
+.todoCard + .todoCard {
+  margin-top: 1rem;
+}
+
+.todoCard > #name {
+  font-size: 1.3rem;
+  text-decoration: underline;
+}
+
+.todoCard > #comment {
+  padding-block: 1rem;
+  text-indent: 1rem;
+  font-size: 0.8rem;
+  position: relative;
+  margin-bottom: 1rem;
+}
+.todoCard > #comment::before {
+  content: "❝";
+  position: absolute;
+  top: -0.5rem;
+  left: -1rem;
+  width: 10px;
+  height: 10px;
+  font-size: 2rem;
+  text-align: center;
+}
+.todoCard > #comment::after {
+  content: "❞";
+  position: absolute;
+  bottom: 0.5rem;
+  right: 1rem;
+  width: 10px;
+  height: 10px;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.todoCard > #info {
+  font-style: italic;
+  font-size: 0.7rem;
+}
