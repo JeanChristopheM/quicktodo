@@ -99,6 +99,8 @@ export const createTodo = async ({
       comment: data.comment,
       author: user.email,
       createdAt: new Date(),
+      lastEditedAt: null,
+      lastEditor: null,
       status: false,
     });
     console.log("Document written with ID: ", docRef.id);
@@ -116,7 +118,11 @@ export const updateTodo = async (todo: ITodo) => {
         throw "Document does not exist!";
       }
 
-      transaction.update(sfDocRef, todo as { [key in string]: any });
+      transaction.update(sfDocRef, {
+        ...todo,
+        lastEditedAt: new Date(),
+        lastEditor: auth.currentUser?.email,
+      } as { [key in string]: any });
     });
     console.log("Transaction successfully committed!");
   } catch (e) {
