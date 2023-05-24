@@ -1,7 +1,12 @@
 import { createContext, useEffect, useState } from "react";
 
 import { Unsubscribe, User, onAuthStateChanged } from "firebase/auth";
-import { auth, isUserValid, subscribeToDBChanges } from "./firebase";
+import {
+  auth,
+  handleSignIn,
+  isUserValid,
+  subscribeToDBChanges,
+} from "./firebase";
 import { ITodo } from "./Todo";
 
 export const Context = createContext<{
@@ -17,13 +22,14 @@ const ContextProvider = ({ children }: { children?: React.ReactNode }) => {
 
   useEffect(() => {
     let unsub: Unsubscribe | null = null;
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       console.log("auth state changed");
-      const validUser = isUserValid(user);
+      const validUser = await isUserValid(user?.email || null);
       if (!validUser) {
         setUser(null);
         unsub && typeof unsub === "function" && unsub();
       } else {
+        console.log("subscribing and connecting user");
         setUser(user);
         unsub = subscribeToDBChanges(setTodos);
       }
@@ -35,7 +41,13 @@ const ContextProvider = ({ children }: { children?: React.ReactNode }) => {
 
   return (
     <Context.Provider value={{ user, setUser, todos, setTodos }}>
-      {children}
+      {user ? (
+        children
+      ) : (
+        <main>
+          <button onClick={handleSignIn}>Sign in</button>
+        </main>
+      )}
     </Context.Provider>
   );
 };

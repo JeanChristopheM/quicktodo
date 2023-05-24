@@ -19,7 +19,7 @@ import {
 
 import type { ITodo } from "./Todo";
 
-import { allowedEmails, firebaseConfig } from "./env";
+import { firebaseConfig } from "./env";
 
 // . Initialize Firebase
 export const app = initializeApp(firebaseConfig);
@@ -27,12 +27,33 @@ export const provider = new GoogleAuthProvider();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+export const isUserValid = async (email: string | null) => {
+  if (!email) return false;
+
+  const response = await fetch("http://localhost:3000/api/check-email", {
+    method: "POST",
+    mode: "cors",
+    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: "same-origin", // include, *same-origin, omit
+    headers: {
+      "Content-Type": "application/json",
+    },
+    redirect: "follow", // manual, *follow, error
+    referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify({ email }),
+  });
+  const { isValidUser } = await response.json();
+  console.log(`${email} is ${isValidUser.toString()}`);
+  return isValidUser;
+};
+
 // . Auth utils
 export const handleSignIn = async () => {
   try {
     setPersistence(auth, browserLocalPersistence).then(() => {
-      signInWithPopup(auth, provider).then((result) => {
-        if (!isUserValid(result.user)) alert("Invalid user");
+      signInWithPopup(auth, provider).then(async (result) => {
+        const validUser = await isUserValid(result.user.email || null);
+        if (!validUser) alert("Invalid user");
       });
     });
   } catch (error) {
@@ -40,17 +61,11 @@ export const handleSignIn = async () => {
   }
 };
 
-export const isUserValid = (user: User | null) => {
-  if (user && user.email && allowedEmails.includes(user.email)) return true;
-  console.log("wrong user", user);
-  return false;
-};
-
 // . Store utils
 export const subscribeToDBChanges = (
   setTodos: React.Dispatch<React.SetStateAction<ITodo[] | null>>
-) =>
-  onSnapshot(
+) => {
+  return onSnapshot(
     collection(db, "todos"),
     (snapshot) => {
       console.log("database change detected");
@@ -85,6 +100,7 @@ export const subscribeToDBChanges = (
     },
     (error) => console.log(error)
   );
+};
 
 export const createTodo = async ({
   user,

@@ -3,3 +3,7 @@
   /* margin: 0 auto; */
   padding: 2rem;
 }
+
+select {
+  border: 1px solid black;
+}
