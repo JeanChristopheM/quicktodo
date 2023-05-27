@@ -1,0 +1,15 @@
+.listControls {
+  display: flex;
+  justify-content: space-between;
+
+  .sortBy {
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+  }
+  .filterBy {
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+  }
+}

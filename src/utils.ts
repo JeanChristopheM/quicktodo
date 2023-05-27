@@ -22,6 +22,12 @@ export enum SortPossibility {
   STATUS = "status",
 }
 
+export enum FilterPossibility {
+  NONE = "none",
+  DONE = "done",
+  TODO = "todo",
+}
+
 export const sortFunctions = {
   [SortPossibility.MOST_RECENT]: (a: ITodo, b: ITodo) =>
     a.createdAt.toDate() > b.createdAt.toDate() ? -1 : 1,
@@ -36,4 +42,14 @@ export const sortFunctions = {
     a.author > b.author ? -1 : 1,
   [SortPossibility.STATUS]: (a: ITodo, b: ITodo) =>
     a.status > b.status ? -1 : 1,
+};
+
+export const filterFunctions = {
+  [FilterPossibility.NONE]: (_t: ITodo) => true,
+  [FilterPossibility.DONE]: (t: ITodo) => t.status === true,
+  [FilterPossibility.TODO]: (t: ITodo) => t.status === false,
+};
+
+export const renderMailToIcon = (email: string) => {
+  return email.split("@")[0].split(".")[0].toLocaleUpperCase();
 };

@@ -172,7 +172,18 @@ button:focus-visible {
   a:hover {
     color: #747bff;
   }
-  button {
+  select:hover {
+    color: #747bff;
+  }
+  button,
+  select {
     background-color: #f9f9f9;
+    border: 1px solid #67657c;
+  }
+  .todoCard {
+    border: 1px solid #1a1a1a;
+  }
+  #logoutIcon {
+    filter: invert(0);
   }
 }

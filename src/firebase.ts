@@ -29,22 +29,36 @@ export const db = getFirestore(app);
 
 export const isUserValid = async (email: string | null) => {
   if (!email) return false;
+  const location = window.location.href;
 
-  const response = await fetch("http://localhost:3000/api/check-email", {
-    method: "POST",
-    mode: "cors",
-    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-    credentials: "same-origin", // include, *same-origin, omit
-    headers: {
-      "Content-Type": "application/json",
-    },
-    redirect: "follow", // manual, *follow, error
-    referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-    body: JSON.stringify({ email }),
-  });
-  const { isValidUser } = await response.json();
-  console.log(`${email} is ${isValidUser.toString()}`);
-  return isValidUser;
+  try {
+    const response = await fetch(
+      location.includes("192.168.1.48")
+        ? "http://192.168.1.48:5173/api/check-email"
+        : location.includes("localhost")
+        ? "http://localhost:3000/api/check-email"
+        : "http://squaredcub.zapto.org:5173/api/check-email",
+      {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+          "Content-Type": "application/json",
+        },
+        redirect: "follow", // manual, *follow, error
+        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    const { isValidUser } = await response.json();
+    console.log(`${email} is ${isValidUser.toString()}`);
+    return isValidUser;
+  } catch (e) {
+    console.warn(e);
+    return false;
+  }
 };
 
 // . Auth utils

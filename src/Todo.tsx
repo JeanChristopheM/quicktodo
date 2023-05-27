@@ -1,8 +1,8 @@
 import { Timestamp } from "firebase/firestore";
 import React from "react";
-import "./style/Todo.css";
+import "./style/Todo.scss";
 import { updateTodo } from "./firebase";
-import { formatDate } from "./utils";
+import { formatDate, renderMailToIcon } from "./utils";
 
 export interface ITodo {
   id: string;
@@ -19,20 +19,31 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
   const { id, name, comment, author, createdAt, status } = todo;
   return (
     <li key={id} className="todoCard">
-      <h3 id="name">{name}</h3>
+      <div className="title">
+        <h3 id="name">
+          {`${name}`}
+          <span>{` (${status ? "fait" : "à faire"})`}</span>
+        </h3>
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={status}
+            onChange={() => updateTodo({ ...todo, status: !todo.status })}
+          />
+          <span className="slider round"></span>
+        </label>
+      </div>
       <p id="comment">{comment}</p>
-      <h2 id="status">{status ? "FAIT" : "À FAIRE"}</h2>
       {todo.lastEditedAt && (
         <p id="info">
-          Édité par: {todo?.lastEditor} le {formatDate(todo.lastEditedAt)}
+          Édité par: <span>{renderMailToIcon(todo?.lastEditor || "")}</span> le{" "}
+          {formatDate(todo.lastEditedAt)}
         </p>
       )}
       <p id="info">
-        Par: {author} le {formatDate(createdAt)}
+        Créé par: <span>{renderMailToIcon(author)}</span> le{" "}
+        {formatDate(createdAt)}
       </p>
-      <button onClick={() => updateTodo({ ...todo, status: !todo.status })}>
-        Changer status
-      </button>
     </li>
   );
 };

@@ -21,7 +21,7 @@ const Form: React.FC<IFormProps> = ({ todo }) => {
     const name = castedEvent.target[0].value;
     const comment = castedEvent.target[1].value;
 
-    const res = await createTodo({ user, data: { name, comment } as ITodo });
+    await createTodo({ user, data: { name, comment } as ITodo });
 
     setTimeout(() => {
       navigate("/");

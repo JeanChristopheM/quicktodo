@@ -45,7 +45,7 @@ const ContextProvider = ({ children }: { children?: React.ReactNode }) => {
         children
       ) : (
         <main>
-          <button onClick={handleSignIn}>Sign in</button>
+          <button onClick={handleSignIn}>Se connecter</button>
         </main>
       )}
     </Context.Provider>

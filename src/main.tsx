@@ -4,7 +4,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import App from "./App.tsx";
 import ErrorPage from "./ErrorPage.tsx";
-import "./style/index.css";
+import "./style/index.scss";
 import ContextProvider from "./ContextProvider.tsx";
 import Form from "./Form.tsx";
 
