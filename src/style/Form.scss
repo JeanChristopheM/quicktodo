@@ -1,0 +1,13 @@
+.form_input {
+  padding-block: 0.2rem;
+  label {
+    display: flex;
+    span {
+      padding: 0.2rem;
+    }
+  }
+  input {
+    width: 100%;
+    display: block;
+  }
+}

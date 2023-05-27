@@ -1,6 +1,6 @@
 import React, { FormEvent, useContext } from "react";
 import { ITodo } from "./Todo";
-import "./style/Form.css";
+import "./style/Form.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { Context } from "./ContextProvider";
 import { createTodo } from "./firebase";
@@ -19,9 +19,8 @@ const Form: React.FC<IFormProps> = ({ todo }) => {
     if (!user) return;
     const castedEvent = e as unknown as { target: HTMLInputElement[] };
     const name = castedEvent.target[0].value;
-    const comment = castedEvent.target[1].value;
 
-    await createTodo({ user, data: { name, comment } as ITodo });
+    await createTodo({ user, data: { name } as ITodo });
 
     setTimeout(() => {
       navigate("/");
@@ -38,12 +37,6 @@ const Form: React.FC<IFormProps> = ({ todo }) => {
           <label htmlFor="name">
             <span>Name</span>
             <input type="text" name="name" defaultValue={todo?.name} />
-          </label>
-        </div>
-        <div className="form_input">
-          <label htmlFor="name">
-            <span>Commentaire</span>
-            <textarea name="comment" defaultValue={todo?.comment} />
           </label>
         </div>
         <button type="submit">Créer</button>

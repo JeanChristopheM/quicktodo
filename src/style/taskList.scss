@@ -1,3 +1,13 @@
+.taskList {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  @media screen and (min-width: 1000px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .listControls {
   display: flex;
   justify-content: space-between;

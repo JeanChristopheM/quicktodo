@@ -15,11 +15,13 @@ import {
   runTransaction,
   doc,
   onSnapshot,
+  collectionGroup,
 } from "firebase/firestore";
 
 import type { ITodo } from "./Todo";
 
 import { firebaseConfig } from "./env";
+import { IComment } from "./Comment";
 
 // . Initialize Firebase
 export const app = initializeApp(firebaseConfig);
@@ -79,41 +81,74 @@ export const handleSignIn = async () => {
 export const subscribeToDBChanges = (
   setTodos: React.Dispatch<React.SetStateAction<ITodo[] | null>>
 ) => {
-  return onSnapshot(
-    collection(db, "todos"),
-    (snapshot) => {
-      console.log("database change detected");
-      console.log({ snapshot });
+  return [
+    onSnapshot(
+      collection(db, "todos"),
+      (snapshot) => {
+        console.log("database change detected");
+        snapshot.docChanges().forEach((change) => {
+          const todo = {
+            ...change.doc.data(),
+            id: change.doc.id,
+            comments: [] as IComment[],
+          } as ITodo;
+
+          if (change.type === "added") {
+            console.log("New todo: ", todo);
+            setTodos((todos) => {
+              if (!todos) return [todo];
+              return todos.some((t) => t.id === todo.id)
+                ? todos
+                : [...todos, todo];
+            });
+          }
+          if (change.type === "modified") {
+            console.log("Modified todo: ", todo);
+            setTodos((todos) => {
+              if (!todos) return [todo];
+              const oldTodo = todos.find((t) => t.id === todo.id);
+              return todos.map((t) =>
+                t.id === todo.id
+                  ? { ...todo, comments: oldTodo?.comments || [] }
+                  : t
+              );
+            });
+          }
+          if (change.type === "removed") {
+            console.log("Removed city: ", change.doc.data());
+            setTodos((todos) =>
+              todos ? todos.filter((t) => t.id !== todo.id) : null
+            );
+          }
+        });
+      },
+      (error) => console.log(error)
+    ),
+    onSnapshot(collectionGroup(db, "comments"), (snapshot) => {
       snapshot.docChanges().forEach((change) => {
-        const todo = {
+        const comment = {
           ...change.doc.data(),
           id: change.doc.id,
-        } as ITodo;
+        } as IComment;
+
         if (change.type === "added") {
-          console.log("New todo: ", todo);
+          console.log("New comment: ", comment);
           setTodos((todos) => {
-            if (!todos) return [todo];
-            return todos.some((t) => t.id === todo.id)
-              ? todos
-              : [...todos, todo];
+            if (!todos) return todos;
+            const todo = todos.find(
+              (t) => t.id === change.doc.ref.parent.parent?.id
+            );
+            if (!todo) return todos;
+            if (todo.comments.find((c) => c.id === comment.id)) return todos;
+            return [
+              ...todos.filter((t) => t.id !== todo.id),
+              { ...todo, comments: [...todo.comments, comment] },
+            ];
           });
         }
-        if (change.type === "modified") {
-          console.log("Modified todo: ", todo);
-          setTodos((todos) =>
-            todos ? todos.map((t) => (t.id === todo.id ? todo : t)) : null
-          );
-        }
-        if (change.type === "removed") {
-          console.log("Removed city: ", change.doc.data());
-          setTodos((todos) =>
-            todos ? todos.filter((t) => t.id !== todo.id) : null
-          );
-        }
       });
-    },
-    (error) => console.log(error)
-  );
+    }),
+  ];
 };
 
 export const createTodo = async ({
@@ -126,7 +161,6 @@ export const createTodo = async ({
   try {
     const docRef = await addDoc(collection(db, "todos"), {
       name: data.name,
-      comment: data.comment,
       author: user.email,
       createdAt: new Date(),
       lastEditedAt: null,

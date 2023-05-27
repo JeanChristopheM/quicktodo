@@ -51,5 +51,5 @@ export const filterFunctions = {
 };
 
 export const renderMailToIcon = (email: string) => {
-  return email.split("@")[0].split(".")[0].toLocaleUpperCase();
+  return email.split("@")[0].toLocaleUpperCase();
 };

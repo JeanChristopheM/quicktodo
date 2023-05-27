@@ -1,0 +1,42 @@
+.comment {
+  display: grid;
+  grid-template-areas:
+    "info comment"
+    "timestamp comment";
+  grid-template-columns: min-content auto;
+
+  .author {
+    grid-area: info;
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+    justify-content: center;
+    align-items: center;
+    span {
+      border: 1px solid white;
+      height: 1.5rem;
+      aspect-ratio: 1;
+      display: flex;
+      justify-content: center;
+      border-radius: 100%;
+      margin-right: 1rem;
+    }
+  }
+
+  .body {
+    grid-area: comment;
+    position: relative;
+    &::before {
+      content: "";
+      position: absolute;
+      height: 80%;
+      width: 1px;
+      left: -0.4rem;
+      top: 0;
+      transform: translateY(10%);
+      border-left: 1px dashed rgba(255, 255, 255, 0.304);
+    }
+  }
+  & + & {
+    margin-top: 0.5rem;
+  }
+}

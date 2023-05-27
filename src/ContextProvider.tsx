@@ -31,7 +31,7 @@ const ContextProvider = ({ children }: { children?: React.ReactNode }) => {
       } else {
         console.log("subscribing and connecting user");
         setUser(user);
-        unsub = subscribeToDBChanges(setTodos);
+        unsub = subscribeToDBChanges(setTodos)[0];
       }
     });
 

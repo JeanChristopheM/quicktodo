@@ -66,7 +66,10 @@ const TaskList: React.FC<ITaskListProps> = ({ tasks }) => {
           </select>
         </div>
       </div>
-      {computedTasks && computedTasks.map((t) => <Todo todo={t} key={t.id} />)}
+      <div className="taskList">
+        {computedTasks &&
+          computedTasks.map((t) => <Todo todo={t} key={t.id} />)}
+      </div>
     </ul>
   );
 };

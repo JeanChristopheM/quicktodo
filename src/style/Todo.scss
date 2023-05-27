@@ -2,55 +2,137 @@
   border: 1px solid white;
   border-radius: 0.2rem;
   padding: 0.5rem;
-  margin-top: 1rem;
 
-  .title {
+  height: max-content;
+
+  flex-grow: 1;
+
+  display: grid;
+  grid-template-areas:
+    "author title toggle"
+    "timestamp title toggle"
+    "comAmount title plus"
+    "coms coms coms"
+    "info info info";
+  grid-template-columns: 2rem auto 4rem;
+  overflow: hidden;
+
+  & > section {
     display: flex;
-    justify-content: space-between;
   }
-  #name {
-    font-size: 1.3rem;
-    text-decoration: underline;
-  }
-
-  #comment {
-    padding-block: 0.5rem;
-    text-indent: 1rem;
-    font-size: 0.8rem;
-    position: relative;
-    margin-bottom: 1rem;
-
-    max-width: max-content;
-    &::before {
-      content: "❝";
-      position: absolute;
-      top: 0rem;
-      left: -0.5rem;
-      width: 1rem;
-      height: 1rem;
-      font-size: 1rem;
-      text-align: center;
-    }
-    &::after {
-      content: "❞";
-      position: absolute;
-      bottom: 0rem;
-      right: 0rem;
-      width: 1rem;
-      height: 1rem;
-      font-size: 1rem;
-      text-align: center;
-    }
-  }
-  & > #info {
-    font-style: italic;
-    font-size: 0.7rem;
+  .author {
+    grid-area: author;
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+    justify-content: center;
+    align-items: center;
     span {
-      font-size: 0.8rem;
+      border: 1px solid white;
+      height: 1.5rem;
+      aspect-ratio: 1;
+      display: flex;
+      justify-content: center;
+      border-radius: 100%;
     }
+  }
+  .title {
+    grid-area: title;
+    font-size: 1.2rem;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .comAmount {
+    font-size: 0.8rem;
+    justify-content: space-evenly;
+    align-items: end;
+    img {
+      filter: invert(1);
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  .toggle {
+    grid-area: toggle;
+    justify-content: right;
+  }
+  .timestamp {
+    grid-area: timestamp;
+    font-size: 0.7rem;
+  }
+  .plus {
+    grid-area: plus;
+    justify-content: end;
+    // align-items: end;
+    padding-top: 0.4rem;
+
+    .smallButton {
+      padding: 0.2rem;
+    }
+  }
+
+  .coms {
+    grid-area: coms;
+    transition: all 0.2s;
+
+    flex-direction: column;
+    background-color: #ffffff10;
+    padding-inline: 0.5rem;
+    &.invisible {
+      height: 0;
+      opacity: 0;
+    }
+    &.visible {
+      height: unset;
+      margin-top: 0.5rem;
+      opacity: 1;
+      border-block: 1px dashed white;
+      padding-block: 0.5rem;
+    }
+
+    .comForm {
+      margin-top: 1rem;
+      &.invisible {
+        height: 0;
+        opacity: 0;
+        padding: 0;
+      }
+      &.visible {
+        height: unset;
+        opacity: unset;
+        padding: unset;
+      }
+
+      textarea {
+        width: 100%;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+
+        button {
+          align-self: flex-end;
+          margin-top: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .info {
+    &.invisible {
+      height: 0;
+      opacity: 0;
+      padding: 0;
+    }
+    padding-top: 1rem;
+
+    grid-area: info;
+    font-size: 0.6rem;
   }
 }
 
+// . Toggle
 .switch {
   position: relative;
   display: inline-block;
