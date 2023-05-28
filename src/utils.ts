@@ -45,7 +45,7 @@ export const sortFunctions = {
 };
 
 export const filterFunctions = {
-  [FilterPossibility.NONE]: (_t: ITodo) => true,
+  [FilterPossibility.NONE]: (t: ITodo) => !!t,
   [FilterPossibility.DONE]: (t: ITodo) => t.status === true,
   [FilterPossibility.TODO]: (t: ITodo) => t.status === false,
 };

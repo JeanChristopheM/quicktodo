@@ -53,6 +53,9 @@ input {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+textarea {
+  padding-bottom: 0;
+}
 button:hover {
   border-color: #646cff;
 }
@@ -81,6 +84,23 @@ button:focus-visible {
   }
   .todoCard {
     border: 1px solid #1a1a1a;
+    .author {
+      span {
+        border: 1px solid black;
+      }
+    }
+    .comAmount {
+      img {
+        filter: invert(0);
+      }
+    }
+  }
+  .comment {
+    .body {
+      &::before {
+        border-left: 1px dashed rgba(0, 0, 0, 0.7);
+      }
+    }
   }
   #logoutIcon {
     filter: invert(0);
