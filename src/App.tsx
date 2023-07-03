@@ -18,10 +18,13 @@ function App() {
       <>
         <nav>
           <Link to="new">
-            <button>New</button>
+            <button>Nouveau</button>
           </Link>
           <h2>Tâches</h2>
           <button onClick={() => auth.signOut()}>
+            {context?.user && (
+              <img src={context.user.photoURL || ""} id="userIcon" />
+            )}
             <img src={logoutIcon} id="logoutIcon" />
           </button>
         </nav>

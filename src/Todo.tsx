@@ -1,5 +1,5 @@
 import { Timestamp, addDoc, collection } from "firebase/firestore";
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import "./style/Todo.scss";
 import { db, updateTodo } from "./firebase";
 import { formatDate, renderMailToIcon } from "./utils";
@@ -39,16 +39,53 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
     if (!comment || !comment.length) return;
     await addDoc(collection(db, "todos", id, "comments"), {
       comment,
-      author: context.user.email,
+      author: context.user.displayName,
       createdAt: new Date(),
     });
     target.value = "";
+    setVisibleComForm(false);
   };
 
+  const isTodoNew = () => {
+    if (!context?.lastSeen || !context?.user || !context?.lastSeen)
+      return false;
+    if (
+      createdAt.seconds > context.lastSeen &&
+      author !== context.user.displayName
+    )
+      return true;
+    else return false;
+  };
+
+  const isThereNewComments = (comments: IComment[]) => {
+    if (
+      comments.some((c) => {
+        if (!context?.lastSeen || !context?.user) return false;
+        if (
+          c.createdAt.seconds > context.lastSeen &&
+          c.author !== context.user.displayName
+        )
+          return true;
+      })
+    )
+      return true;
+    else return false;
+  };
+
+  const $userImage = useMemo(() => {
+    return context?.users?.find((u) => u.username === author)?.picture;
+  }, [context?.users, author]);
+
   return (
-    <li key={id} className="todoCard">
+    <li key={id} className={`todoCard ${isTodoNew() ? "isNew" : ""}`}>
       <section className="author">
-        <span>{author.slice(0, 1).toLocaleUpperCase()}</span>
+        <span>
+          {$userImage ? (
+            <img src={$userImage} />
+          ) : (
+            author.slice(0, 1).toLocaleUpperCase()
+          )}
+        </span>
       </section>
 
       <section className="title">
@@ -67,7 +104,9 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
         </label>
       </section>
 
-      <section className="comAmount">
+      <section
+        className={`comAmount ${isThereNewComments(comments) ? "hasNew" : ""}`}
+      >
         <span>{comments.length}</span>
         <img src={messageIcon} />
       </section>
@@ -88,7 +127,7 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
         {comments.length ? (
           comments
             .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
-            .map((c) => <Comment comment={c} key={c.id} />)
+            .map((c) => <Comment todoId={id} comment={c} key={c.id} />)
         ) : (
           <p>Aucuns commentaires</p>
         )}
@@ -100,23 +139,20 @@ const Todo: React.FC<{ todo: ITodo }> = ({ todo }) => {
               rows={visibleComForm ? 2 : 1}
               placeholder="Ajouter un commentaire"
               onFocus={() => setVisibleComForm(true)}
-              onBlur={(e) => {
-                if (!e.target.value) setVisibleComForm(false);
-                if (
-                  e.nativeEvent.relatedTarget &&
-                  (e.nativeEvent.relatedTarget as HTMLElement)?.id ===
-                    "formButton"
-                )
-                  setTimeout(() => {
-                    setVisibleComForm(false);
-                  }, 250);
-                else setVisibleComForm(false);
-              }}
             />
             {visibleComForm && (
-              <button type="submit" id="formButton">
-                Confirmer
-              </button>
+              <div className="commentControls">
+                <button
+                  type="button"
+                  id="cancelButton"
+                  onClick={() => setVisibleComForm(false)}
+                >
+                  Annuler
+                </button>
+                <button type="submit" id="formButton">
+                  Confirmer
+                </button>
+              </div>
             )}
           </form>
         </div>

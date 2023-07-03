@@ -33,6 +33,7 @@
       display: flex;
       justify-content: center;
       border-radius: 100%;
+      overflow: hidden;
     }
   }
   .title {
@@ -46,10 +47,25 @@
     font-size: 0.8rem;
     justify-content: space-evenly;
     align-items: end;
+    gap: 0.2rem;
+    position: relative;
     img {
       filter: invert(1);
       width: 1rem;
       height: 1rem;
+    }
+    &.hasNew::after {
+      content: "";
+      position: absolute;
+      width: calc(100% + 0.4rem);
+      height: 1.4rem;
+      left: 50%;
+      bottom: -0.2rem;
+      border-radius: 0.2rem;
+      transform: translateX(-50%);
+      background-color: red;
+      z-index: -1;
+      opacity: 50%;
     }
   }
   .toggle {
@@ -67,7 +83,7 @@
     padding-top: 0.4rem;
 
     .smallButton {
-      padding: 0.2rem;
+      padding: 0.2rem 1rem;
     }
   }
 
@@ -110,10 +126,13 @@
       form {
         display: flex;
         flex-direction: column;
-
-        button {
-          align-self: flex-end;
-          margin-top: 0.5rem;
+      }
+      .commentControls {
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        #formButton {
+          border: 2px solid rgb(96, 82, 255);
         }
       }
     }
@@ -129,6 +148,9 @@
 
     grid-area: info;
     font-size: 0.6rem;
+  }
+  &.isNew {
+    border: 2px solid rgb(96, 82, 255);
   }
 }
 

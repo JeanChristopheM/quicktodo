@@ -16,18 +16,24 @@ import {
   doc,
   onSnapshot,
   collectionGroup,
+  deleteDoc,
+  setDoc,
+  getDoc,
 } from "firebase/firestore";
 
 import type { ITodo } from "./Todo";
 
 import { firebaseConfig } from "./env";
 import { IComment } from "./Comment";
+import { IUser } from "./ContextProvider";
 
 // . Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const provider = new GoogleAuthProvider();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+export const log = false;
 
 export const isUserValid = async (email: string | null) => {
   if (!email) return false;
@@ -39,6 +45,8 @@ export const isUserValid = async (email: string | null) => {
         ? "http://192.168.1.48:5173/api/check-email"
         : location.includes("localhost")
         ? "http://localhost:3000/api/check-email"
+        : location.includes("192.168.1.33")
+        ? "http://192.168.1.33:3000/api/check-email"
         : "http://squaredcub.zapto.org:5173/api/check-email",
       {
         method: "POST",
@@ -55,10 +63,10 @@ export const isUserValid = async (email: string | null) => {
     );
 
     const { isValidUser } = await response.json();
-    console.log(`${email} is ${isValidUser.toString()}`);
+    log && console.log(`${email} is ${isValidUser.toString()}`);
     return isValidUser;
   } catch (e) {
-    console.warn(e);
+    log && console.warn(e);
     return false;
   }
 };
@@ -73,19 +81,40 @@ export const handleSignIn = async () => {
       });
     });
   } catch (error) {
-    console.error("Error signing in with Google:", error);
+    log && console.error("Error signing in with Google:", error);
   }
 };
 
+export const registerUser = async (
+  user: User,
+  setLastSeen: (x: number) => void
+) => {
+  try {
+    const lastSeen = (await getDoc(doc(db, "users", user.uid)))?.data()
+      ?.lastSeen?.seconds;
+
+    lastSeen && setLastSeen(lastSeen);
+
+    await setDoc(doc(db, "users", user.uid), {
+      username: user.displayName,
+      picture: user.photoURL,
+      lastSeen: new Date(),
+    });
+    log && console.log("Transaction successfully committed!");
+  } catch (error) {
+    log && console.error("Error registering user:", error);
+  }
+};
 // . Store utils
 export const subscribeToDBChanges = (
-  setTodos: React.Dispatch<React.SetStateAction<ITodo[] | null>>
+  setTodos: React.Dispatch<React.SetStateAction<ITodo[] | null>>,
+  setUsers: React.Dispatch<React.SetStateAction<IUser[] | null>>
 ) => {
   return [
     onSnapshot(
       collection(db, "todos"),
       (snapshot) => {
-        console.log("database change detected");
+        log && console.log("database change detected");
         snapshot.docChanges().forEach((change) => {
           const todo = {
             ...change.doc.data(),
@@ -94,7 +123,7 @@ export const subscribeToDBChanges = (
           } as ITodo;
 
           if (change.type === "added") {
-            console.log("New todo: ", todo);
+            log && console.log("New todo: ", todo);
             setTodos((todos) => {
               if (!todos) return [todo];
               return todos.some((t) => t.id === todo.id)
@@ -103,7 +132,7 @@ export const subscribeToDBChanges = (
             });
           }
           if (change.type === "modified") {
-            console.log("Modified todo: ", todo);
+            log && console.log("Modified todo: ", todo);
             setTodos((todos) => {
               if (!todos) return [todo];
               const oldTodo = todos.find((t) => t.id === todo.id);
@@ -115,14 +144,14 @@ export const subscribeToDBChanges = (
             });
           }
           if (change.type === "removed") {
-            console.log("Removed city: ", change.doc.data());
+            log && console.log("Removed city: ", change.doc.data());
             setTodos((todos) =>
               todos ? todos.filter((t) => t.id !== todo.id) : null
             );
           }
         });
       },
-      (error) => console.log(error)
+      (error) => log && console.log(error)
     ),
     onSnapshot(collectionGroup(db, "comments"), (snapshot) => {
       snapshot.docChanges().forEach((change) => {
@@ -132,7 +161,7 @@ export const subscribeToDBChanges = (
         } as IComment;
 
         if (change.type === "added") {
-          console.log("New comment: ", comment);
+          log && console.log("New comment: ", comment);
           setTodos((todos) => {
             if (!todos) return todos;
             const todo = todos.find(
@@ -145,6 +174,54 @@ export const subscribeToDBChanges = (
               { ...todo, comments: [...todo.comments, comment] },
             ];
           });
+        }
+        if (change.type === "removed") {
+          log && console.log("Comment removed2: ", comment);
+          setTodos((todos) => {
+            if (!todos) return todos;
+            const todo = todos.find(
+              (t) => t.id === change.doc.ref.parent.parent?.id
+            );
+            if (!todo) return todos;
+            return [
+              ...todos.filter((t) => t.id !== todo.id),
+              {
+                ...todo,
+                comments: [...todo.comments.filter((c) => c.id !== comment.id)],
+              },
+            ];
+          });
+        }
+      });
+    }),
+    onSnapshot(collectionGroup(db, "users"), (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const user = {
+          ...change.doc.data(),
+          id: change.doc.id,
+        } as IUser;
+
+        if (change.type === "added") {
+          log && console.log("New user: ", user);
+          setUsers((users) => {
+            if (!users) return [user];
+            return users.some((t) => t.id === user.id)
+              ? users
+              : [...users, user];
+          });
+        }
+        if (change.type === "modified") {
+          log && console.log("Modified user: ", user);
+          setUsers((users) => {
+            if (!users) return [user];
+            return users.map((t) => (t.id === user.id ? { ...user } : t));
+          });
+        }
+        if (change.type === "removed") {
+          log && console.log("Removed user: ", change.doc.data());
+          setUsers((users) =>
+            users ? users.filter((t) => t.id !== user.id) : null
+          );
         }
       });
     }),
@@ -161,15 +238,15 @@ export const createTodo = async ({
   try {
     const docRef = await addDoc(collection(db, "todos"), {
       name: data.name,
-      author: user.email,
+      author: user.displayName,
       createdAt: new Date(),
       lastEditedAt: null,
       lastEditor: null,
       status: false,
     });
-    console.log("Document written with ID: ", docRef.id);
+    log && console.log("Document written with ID: ", docRef.id);
   } catch (e) {
-    console.error("Error adding document: ", e);
+    log && console.error("Error adding document: ", e);
   }
 };
 
@@ -185,11 +262,21 @@ export const updateTodo = async (todo: ITodo) => {
       transaction.update(sfDocRef, {
         ...todo,
         lastEditedAt: new Date(),
-        lastEditor: auth.currentUser?.email,
+        lastEditor: auth.currentUser?.displayName,
       } as { [key in string]: any });
     });
-    console.log("Transaction successfully committed!");
+    log && console.log("Transaction successfully committed!");
   } catch (e) {
-    console.log("Transaction failed: ", e);
+    log && console.log("Transaction failed: ", e);
+  }
+};
+
+export const deleteComment = async (todoId: string, commentId: string) => {
+  try {
+    const sfDocRef = doc(db, "todos", todoId, "comments", commentId);
+    await deleteDoc(sfDocRef);
+    log && console.log("Comment successfully deleted!");
+  } catch (e) {
+    log && console.log("Transaction failed: ", e);
   }
 };

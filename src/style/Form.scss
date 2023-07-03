@@ -1,13 +1,12 @@
 .form_input {
-  padding-block: 0.2rem;
+  padding-block: 1rem;
+  position: relative;
   label {
     display: flex;
-    span {
-      padding: 0.2rem;
-    }
+    flex-direction: column;
   }
   input {
-    width: 100%;
+    width: min(100%, 360px);
     display: block;
   }
 }
